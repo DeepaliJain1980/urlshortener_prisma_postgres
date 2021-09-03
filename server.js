@@ -39,50 +39,31 @@ app.post('/api/shorturl', (req, res)=> {
 
   console.log(url1);
   if(!validUrl.isWebUri(url1)){
-      res.json({error:'invalid url'});
-      console.log("Invalid URL");
+    console.log("Invalid URL");
+    return res.json({error:'invalid url'});
+     
     }
-  else{
-   prisma.url.findUnique({
+
+   const urlCode=Math.floor(Math.random() * 10000)
+   prisma.url.upsert({
     where: {
       'original_url' : url1 ,
     },
+    update: {
+      
+    },
+    create: {
+      original_url: url1,
+      short_url: urlCode,
+    },
     })
    .then(response=>{
-      if(response){
-        console.log("URL Found");
-        res.json({original_url:response.original_url,
+          res.json({original_url:response.original_url,
           short_url:+response.short_url
           })
-      }
-      else{
-        console.log("URL Not Found");
-
-          const urlCode=Math.floor(Math.random() * 10000)
-          console.log(urlCode);
-          prisma.url.create({
-          data:{
-              original_url:url1,
-              short_url:urlCode
-            }
-          })
-          .then(response=>{
-            console.log("New URL Saved");
-            res.json({
-              original_url:response.original_url,
-              short_url:+response.short_url
-            })
-          })
-          .catch(error=>console.log(error));
-        }
       })
-  .catch(err=>{
-      console.log(err);
-      res.json({"error":"server error"});
-    });
-    
-  }
-   
+      .catch(error=>console.log(error));
+         
 });
 
 

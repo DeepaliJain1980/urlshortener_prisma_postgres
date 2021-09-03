@@ -1,0 +1,50 @@
+app.post('/api/shorturl', (req, res)=> {
+  const url1=req.body.url;
+
+  console.log(url1);
+  if(!validUrl.isWebUri(url1)){
+      res.json({error:'invalid url'});
+      console.log("Invalid URL");
+    }
+  else{
+   prisma.url.findUnique({
+    where: {
+      'original_url' : url1 ,
+    },
+    })
+   .then(response=>{
+      if(response){
+        console.log("URL Found");
+        res.json({original_url:response.original_url,
+          short_url:+response.short_url
+          })
+      }
+      else{
+        console.log("URL Not Found");
+
+          const urlCode=Math.floor(Math.random() * 10000)
+          console.log(urlCode);
+          prisma.url.create({
+          data:{
+              original_url:url1,
+              short_url:urlCode
+            }
+          })
+          .then(response=>{
+            console.log("New URL Saved");
+            res.json({
+              original_url:response.original_url,
+              short_url:+response.short_url
+            })
+          })
+          .catch(error=>console.log(error));
+        }
+      })
+  .catch(err=>{
+      console.log(err);
+      res.json({"error":"server error"});
+    });
+    
+  }
+   
+});
