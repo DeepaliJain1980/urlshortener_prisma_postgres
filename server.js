@@ -5,7 +5,9 @@ const cors = require('cors');
 
 
 const validUrl = require('valid-url');
-const shortid = require('shortid');
+const crypto = require('crypto');
+const sha1 = require('sha1');
+
 
 
 const { PrismaClient } = require('@prisma/client');
@@ -44,7 +46,11 @@ app.post('/api/shorturl', (req, res)=> {
      
     }
 
-   const urlCode=Math.floor(Math.random() * 10000)
+   //const urlCode=Math.floor(Math.random() * 10000);
+   //const urlCode=crypto.createHash('sha256').update(url1, 'utf8').digest('hex');
+    const urlCode=sha1(url1);
+
+   console.log("url code is: " + urlCode);
    prisma.url.upsert({
     where: {
       'original_url' : url1 ,
@@ -59,7 +65,7 @@ app.post('/api/shorturl', (req, res)=> {
     })
    .then(response=>{
           res.json({original_url:response.original_url,
-          short_url:+response.short_url
+          short_url:response.short_url
           })
       })
       .catch(error=>console.log(error));
@@ -73,7 +79,7 @@ app.post('/api/shorturl', (req, res)=> {
 //http://localhost:3000/api/shorturl/73
 //req.params.short_url:73-------------Valid short_url
 app.get('/api/shorturl/:short_url', (req, res)=> {
-paramUrl=+req.params.short_url;
+paramUrl=req.params.short_url;
 
 prisma.url.findUnique({
   where:{short_url:paramUrl}})
